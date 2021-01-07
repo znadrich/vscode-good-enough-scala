@@ -17,23 +17,22 @@ export const regexSymbols = <M extends URIS>(M: Monad1<M>, R: MkRef<M>): Symbols
     const splitContents = contents.split("\n");
     const prevLine = splitContents[lineNum - 1];
 
-    var docString = "scala```\n";
+    var docString = "";
 
     if (prevLine.includes(endRx)) {
       var currLine = lineNum - 1;
       var stillDoc = true;
       while (stillDoc) {
         console.log(splitContents[currLine])
-        if (!splitContents[currLine].includes(begRx)) {
-          docString = concat(splitContents[currLine], docString);
-        } else {
+        docString = concat(splitContents[currLine], docString);
+        if (splitContents[currLine].includes(begRx)) {
           stillDoc = false;
         }
         currLine -= 1;
       }
     }
 
-    docString = concat(docString, "\n```")
+    docString = concat(concat("```scala\n", docString), "\n```")
     return docString;
   }
 

@@ -6,9 +6,9 @@ import { CodeAction, CodeActionKind, CodeActionParams, createConnection, DidChan
 import { Algebras } from "./algebras";
 import { filterCodeActions } from "./algebras/codeActions";
 import { FileCache } from "./algebras/files";
-import { ScalaSymbol, symToLoc, symToUri } from "./algebras/symbols";
+import { ScalaSymbol, symToLoc } from "./algebras/symbols";
 import { fromPromiseL, getAlgebras, M, MHK, RTS } from "./effect";
-import { applyTo, Do, exhaustive } from "./util";
+import { Do, exhaustive } from "./util";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments();
@@ -51,8 +51,7 @@ connection.onInitialized(() => {
       return yield some(hoverEnabled).filter(identity).fold<M<Hover | undefined>>(M.of(undefined), () => symbols.symbolsForPos(files)(tdp).map((syms: ScalaSymbol[]) => ({
         contents: {
           kind: MarkupKind.Markdown,
-          value: syms.map((sym: ScalaSymbol) => applyTo((line: string) =>
-          `${sym.docString} ${symToUri(sym)}`)).join("\n")
+          value: syms.map((sym: ScalaSymbol) => `${sym.docString}`).join("\n")
         }
       })));
     })));
