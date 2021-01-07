@@ -11,7 +11,33 @@ import FuzzySearch = require("fuzzy-search");
 type SymbolExtractor = (f: ScalaFile, c: string) => ScalaSymbol[];
 
 export const regexSymbols = <M extends URIS>(M: Monad1<M>, R: MkRef<M>): Symbols<M> => {
-  const extractMatches = (rx: RegExp, symbolType: string, kind: SymbolKind, file: ScalaFile) => (line: string, lineNum: number): ScalaSymbol[] => {
+  const extractDoc = (contents: string, lineNum: number): string => {
+    const endRx = `*/`;
+    const begRx = `/*`;
+    const splitContents = contents.split("\n");
+    const prevLine = splitContents[lineNum - 1];
+
+    var docString = "scala```\n";
+
+    if (prevLine.includes(endRx)) {
+      var currLine = lineNum - 1;
+      var stillDoc = true;
+      while (stillDoc) {
+        console.log(splitContents[currLine])
+        if (!splitContents[currLine].includes(begRx)) {
+          docString = concat(splitContents[currLine], docString);
+        } else {
+          stillDoc = false;
+        }
+        currLine -= 1;
+      }
+    }
+
+    docString = concat(docString, "\n```")
+    return docString;
+  }
+
+  const extractMatches = (rx: RegExp, symbolType: string, kind: SymbolKind, file: ScalaFile, contents: string) => (line: string, lineNum: number): ScalaSymbol[] => {
     const offset = symbolType.length + 1;
     const retVal: ScalaSymbol[] = [];
     let matches = rx.exec(line);
@@ -21,7 +47,8 @@ export const regexSymbols = <M extends URIS>(M: Monad1<M>, R: MkRef<M>): Symbols
         rawName: matches[1],
         kind,
         file,
-        location: { line: lineNum, character: matches.index + offset }
+        location: { line: lineNum, character: matches.index + offset },
+        docString: extractDoc(contents, lineNum)
       });
       matches = rx.exec(line);
     }
@@ -33,7 +60,9 @@ export const regexSymbols = <M extends URIS>(M: Monad1<M>, R: MkRef<M>): Symbols
 
   const defaultExtractor = (symType: string, kind: SymbolKind) => (file: ScalaFile, contents?: string): ScalaSymbol[] => {
     const rx = new RegExp(`${symType} (${alphaRx.source}${termRx.source}+)`, "g");
-    return flatten((contents || "").split("\n").map(extractMatches(rx, symType, kind, file)));
+    const matches = flatten((contents || "").split("\n").map(extractMatches(rx, symType, kind, file, (contents || ""))));
+    
+    return matches;
   };
 
   const symbolExtractors: SymbolExtractor[] = [

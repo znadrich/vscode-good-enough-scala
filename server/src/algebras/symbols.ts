@@ -11,6 +11,7 @@ export interface ScalaSymbol {
   kind: SymbolKind;
   file: ScalaFile;
   location: { line: number; character: number; };
+  docString: string;
 }
 
 export interface SymbolCache { [sym: string]: ScalaSymbol[]; }
