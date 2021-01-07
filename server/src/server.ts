@@ -6,7 +6,7 @@ import { CodeAction, CodeActionKind, CodeActionParams, createConnection, DidChan
 import { Algebras } from "./algebras";
 import { filterCodeActions } from "./algebras/codeActions";
 import { FileCache } from "./algebras/files";
-import { ScalaSymbol, symToLoc } from "./algebras/symbols";
+import { ScalaSymbol, symToLoc, symToUri } from "./algebras/symbols";
 import { fromPromiseL, getAlgebras, M, MHK, RTS } from "./effect";
 import { applyTo, Do, exhaustive } from "./util";
 
@@ -52,7 +52,7 @@ connection.onInitialized(() => {
         contents: {
           kind: MarkupKind.Markdown,
           value: syms.map((sym: ScalaSymbol) => applyTo((line: string) =>
-          `${sym.docString}`)).join("\n")
+          `${sym.docString} ${symToUri(sym)}`)).join("\n")
         }
       })));
     })));
