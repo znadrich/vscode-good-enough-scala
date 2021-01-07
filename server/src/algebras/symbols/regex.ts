@@ -20,6 +20,7 @@ export const regexSymbols = <M extends URIS>(M: Monad1<M>, R: MkRef<M>): Symbols
     var docString = "";
 
     if (prevLine.includes(endRx)) {
+      var docString = `${splitContents[lineNum]}\n`;
       var currLine = lineNum - 1;
       var stillDoc = true;
       while (stillDoc) {
